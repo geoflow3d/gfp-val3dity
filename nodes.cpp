@@ -1,0 +1,92 @@
+#include "nodes.hpp"
+
+// val3dity
+#include "Surface.h"
+#include "Solid.h"
+#include "GenericObject.h"
+
+
+void ValidatorNode::process()
+{
+  auto& faces = vector_input("faces");
+  // create a vertex list and vertex IDs, taking care of duplicates
+  std::map<arr3f, size_t> vertex_map;
+  std::vector<arr3f> vertex_vec;
+  {
+    size_t v_cntr = 1;
+    std::set<arr3f> vertex_set;
+    for (size_t j = 0; j < faces.size(); ++j)
+    {
+      auto& face = faces.get<LinearRing>(j);
+
+      for (auto &vertex : face)
+      {
+        auto [it, did_insert] = vertex_set.insert(vertex);
+        if (did_insert)
+        {
+          vertex_map[vertex] = v_cntr++;
+          vertex_vec.push_back(vertex);
+        }
+      }
+      for (auto& iring : face.interior_rings())
+        for (auto &vertex : iring)
+        {
+          auto [it, did_insert] = vertex_set.insert(vertex);
+          if (did_insert)
+          {
+            vertex_map[vertex] = v_cntr++;
+            vertex_vec.push_back(vertex);
+          }
+        }
+    }
+  }
+  
+  // build the val3dity data structures
+  auto o = std::make_unique<val3dity::GenericObject>("none");
+
+  val3dity::Primitive::set_translation_min_values((*manager.data_offset)[0], (*manager.data_offset)[1]);
+  val3dity::Surface::set_translation_min_values((*manager.data_offset)[0], (*manager.data_offset)[1]);
+
+  auto sh = std::make_unique<val3dity::Surface>(0);
+  for (auto &v : vertex_vec)
+  {
+    val3dity::Point3 p(v[0], v[1], v[2]);
+    sh->add_point(p);
+  }
+  //-- read the facets
+  for (size_t j = 0; j < faces.size(); ++j)
+  {
+    auto& face = faces.get<LinearRing>(j);
+    std::vector< std::vector<int> > pgnids;
+    std::vector<int> ids;
+    for (auto &vertex : face)
+    {
+      ids.push_back(vertex_map[vertex]);
+    }
+    pgnids.push_back(ids);
+    for (auto& iring : face.interior_rings())
+    {
+      std::vector<int> ids;
+      for (auto &vertex : iring)
+      {
+        ids.push_back(vertex_map[vertex]);
+      }
+      pgnids.push_back(ids);
+    }
+    sh->add_face(pgnids);
+  }
+
+  auto s = std::make_unique<val3dity::Solid>();
+  s->set_oshell(sh.get());
+  o->add_primitive(s.get());
+
+  // validate
+  o->validate(tol_planarity_d2p_, tol_planarity_normals_);
+
+  std::string errors = "";
+  for(auto error_code : o->get_unique_error_codes()) {
+    errors += std::to_string(error_code) + ", ";
+  }
+  vector_output("errors").push_back(errors);
+
+}

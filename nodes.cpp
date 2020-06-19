@@ -1,5 +1,8 @@
 #include "nodes.hpp"
 
+// #include <iomanip>
+// #include <fstream>
+
 // val3dity
 #include "Surface.h"
 #include "Solid.h"
@@ -13,7 +16,7 @@ void ValidatorNode::process()
   std::map<arr3f, size_t> vertex_map;
   std::vector<arr3f> vertex_vec;
   {
-    size_t v_cntr = 1;
+    size_t v_cntr = 0;
     std::set<arr3f> vertex_set;
     for (size_t j = 0; j < faces.size(); ++j)
     {
@@ -28,7 +31,8 @@ void ValidatorNode::process()
           vertex_vec.push_back(vertex);
         }
       }
-      for (auto& iring : face.interior_rings())
+      for (auto& iring : face.interior_rings()) 
+      {
         for (auto &vertex : iring)
         {
           auto [it, did_insert] = vertex_set.insert(vertex);
@@ -38,6 +42,7 @@ void ValidatorNode::process()
             vertex_vec.push_back(vertex);
           }
         }
+      }
     }
   }
   
@@ -59,10 +64,13 @@ void ValidatorNode::process()
     auto& face = faces.get<LinearRing>(j);
     std::vector< std::vector<int> > pgnids;
     std::vector<int> ids;
+    // ofs << "f";
     for (auto &vertex : face)
     {
       ids.push_back(vertex_map[vertex]);
+      // ofs << " " << vertex_map[vertex];
     }
+    // ofs << std::endl;
     pgnids.push_back(ids);
     for (auto& iring : face.interior_rings())
     {
@@ -75,6 +83,7 @@ void ValidatorNode::process()
     }
     sh->add_face(pgnids);
   }
+  // ofs.close();
 
   auto s = std::make_unique<val3dity::Solid>();
   s->set_oshell(sh.get());
@@ -83,10 +92,7 @@ void ValidatorNode::process()
   // validate
   o->validate(tol_planarity_d2p_, tol_planarity_normals_);
 
-  std::string errors = "";
-  for(auto error_code : o->get_unique_error_codes()) {
-    errors += std::to_string(error_code) + ", ";
-  }
-  vector_output("errors").push_back(errors);
+  json j = o->get_unique_error_codes();
+  vector_output("errors").push_back(j.dump());
 
 }

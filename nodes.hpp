@@ -21,7 +21,7 @@ using namespace geoflow;
 class ValidatorNode : public Node
 {
   // int precision=5;
-  // std::string filepath;
+  // std::string filepath = "faces.obj";
   // bool no_offset = false;
   float tol_planarity_d2p_ = 0.01;
   float tol_planarity_normals_ = 20;

@@ -34,6 +34,7 @@ public:
     add_vector_input("faces", typeid(LinearRing));
 
     add_vector_output("errors", typeid(std::string));
+    add_output("error_locations", typeid(PointCollection));
 
     // add_param(ParamPath(filepath, "filepath", "File path"));
     // add_param(ParamBool(no_offset, "no_offset", "Do not apply global offset"));

@@ -95,4 +95,10 @@ void ValidatorNode::process()
   json j = o->get_unique_error_codes();
   vector_output("errors").push_back(j.dump());
 
+  PointCollection pc;
+  for (const auto& p : sh->get_error_points()) {
+    pc.push_back(arr3f{float(p.x()), float(p.y()), float(p.z())});
+  }
+  output("error_locations").set(pc);
+
 }

@@ -34,6 +34,7 @@ public:
     add_vector_input("faces", typeid(LinearRing));
 
     add_vector_output("errors", typeid(std::string));
+    add_vector_output("error_faces", typeid(LinearRing));
     add_output("error_locations", typeid(PointCollection));
 
     // add_param(ParamPath(filepath, "filepath", "File path"));

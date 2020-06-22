@@ -58,7 +58,7 @@ void ValidatorNode::process()
     val3dity::Point3 p(v[0], v[1], v[2]);
     sh->add_point(p);
   }
-  //-- read the facets
+  //-- add the facets
   for (size_t j = 0; j < faces.size(); ++j)
   {
     auto& face = faces.get<LinearRing>(j);
@@ -98,6 +98,12 @@ void ValidatorNode::process()
   PointCollection pc;
   for (const auto& p : sh->get_error_points()) {
     pc.push_back(arr3f{float(p.x()), float(p.y()), float(p.z())});
+  }
+  auto& error_faces = vector_output("error_faces");
+  for (auto sfid : sh->get_error_face_ids()) {
+    int fid = stoi(sfid)-1;
+    std::cout << "number of faces: " << faces.size() << "; error: " <<fid << "\n";
+    error_faces.push_back(faces.get<LinearRing>(fid));
   }
   output("error_locations").set(pc);
 

@@ -101,9 +101,13 @@ void ValidatorNode::process()
   }
   auto& error_faces = vector_output("error_faces");
   for (auto sfid : sh->get_error_face_ids()) {
-    int fid = stoi(sfid)-1;
-    std::cout << "number of faces: " << faces.size() << "; error: " <<fid << "\n";
-    error_faces.push_back(faces.get<LinearRing>(fid));
+    try {
+        int fid = stoi(sfid) - 1;
+        std::cout << "number of faces: " << faces.size() << "; error: " << fid << "\n";
+        error_faces.push_back(faces.get<LinearRing>(fid));
+    } catch (std::exception& e) {
+        continue;
+    }
   }
   output("error_locations").set(pc);
 

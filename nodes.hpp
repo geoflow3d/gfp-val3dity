@@ -23,6 +23,7 @@ class ValidatorNode : public Node
   // int precision=5;
   // std::string filepath = "faces.obj";
   // bool no_offset = false;
+  bool log_invalids=false;
   float tol_planarity_d2p_ = 0.01;
   float tol_planarity_normals_ = 20;
   // float tol_overlap_ = -1;
@@ -40,6 +41,7 @@ public:
     // add_param(ParamPath(filepath, "filepath", "File path"));
     // add_param(ParamBool(no_offset, "no_offset", "Do not apply global offset"));
     // add_param(ParamInt(precision, "precision", "precision"));
+    add_param(ParamBool(log_invalids, "log_invalids", "Print invalid geometries to cout"));
     add_param(ParamFloat(tol_planarity_d2p_, "tol_planarity_d2p_", "tolerance for planarity distance_to_plane"));
     add_param(ParamFloat(tol_planarity_normals_, "tol_planarity_normals_", "tolerance for planarity based on normals deviation in degrees"));
   }

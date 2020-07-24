@@ -129,18 +129,23 @@ void ValidatorNode::process()
 
   json j = o->get_unique_error_codes();
   vector_output("errors").push_back(j.dump());
-  std::cout << "\nVal3dity error codes: " << j.dump() << "\n";
+
+  if(log_invalids) std::cout << "\nVal3dity error codes: " << j.dump() << "\n";
 
   PointCollection pc;
   auto& offset = *manager.data_offset;
   auto errorpts = sh->get_error_points();
-  if(errorpts.size()) {
-    std::cout << "Val3dity error points (" << errorpts.size() << " total):\n";
-    std::cout << std::fixed << std::setprecision(3);
+  if(log_invalids) {
+    if(errorpts.size()) {
+      std::cout << "Val3dity error points (" << errorpts.size() << " total):\n";
+      std::cout << std::fixed << std::setprecision(3);
+    }
   }
   for (const auto& p : errorpts) {
     pc.push_back(arr3f{float(p.x()), float(p.y()), float(p.z())});
-    if(errorpts.size()) std::cout << "\t" << (p.x()+offset[0]) << " " << (p.y()+offset[1]) << " " << (p.z()+offset[2]) << "\n";
+    if(log_invalids) {
+      if(errorpts.size()) std::cout << "\t" << (p.x()+offset[0]) << " " << (p.y()+offset[1]) << " " << (p.z()+offset[2]) << "\n";
+    }
   }
   auto& error_faces = vector_output("error_faces");
   for (auto sfid : sh->get_error_face_ids()) {
@@ -165,13 +170,15 @@ void ValidatorNode::process()
         continue;
     }
   }
-  if(error_faces.size()) {
-    std::cout << "Val3dity error faces (" << error_faces.size() << " total):\n";
-    for (size_t i=0; i< error_faces.size(); ++i) {
-      auto& face = error_faces.get<LinearRing&>(i);
-      std::cout << "face " << i << "\n";
-      for (auto& p : face) {
-        std::cout << "\t" << (p[0]+offset[0]) << " " << (p[1]+offset[1]) << " " << (p[2]+offset[2]) << "\n";
+  if(log_invalids) {
+    if(error_faces.size()) {
+      std::cout << "Val3dity error faces (" << error_faces.size() << " total):\n";
+      for (size_t i=0; i< error_faces.size(); ++i) {
+        auto& face = error_faces.get<LinearRing&>(i);
+        std::cout << "face " << i << "\n";
+        for (auto& p : face) {
+          std::cout << "\t" << (p[0]+offset[0]) << " " << (p[1]+offset[1]) << " " << (p[2]+offset[2]) << "\n";
+        }
       }
     }
   }

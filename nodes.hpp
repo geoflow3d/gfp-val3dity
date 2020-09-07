@@ -32,7 +32,7 @@ public:
   using Node::Node;
   void init()
   {
-    add_input("input_geom", {typeid(Mesh), typeid(TriangleCollection)});
+    add_vector_input("input_geom", {typeid(Mesh), typeid(TriangleCollection)});
 
     add_vector_output("errors", typeid(std::string));
     add_vector_output("error_faces", typeid(LinearRing));

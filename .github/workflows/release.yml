@@ -49,8 +49,8 @@ jobs:
           mkdir gfp-val3dity
           mkdir gfp-val3dity\deps
           cp build\Release\gfp_val3dity.dll gfp-val3dity\
-          cp C:\Software\GEOS\bin\geos_c.dll gfp-gdal\deps\
-          cp C:\Software\GEOS\bin\geos.dll gfp-gdal\deps\
+          cp C:\Software\GEOS\bin\geos_c.dll gfp-val3dity\deps\
+          cp C:\Software\GEOS\bin\geos.dll gfp-val3dity\deps\
       - name: Create artifact
         uses: actions/upload-artifact@master
         with:

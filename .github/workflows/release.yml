@@ -1,0 +1,96 @@
+name: Release
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  Windows-build:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download GEOS
+        run: |
+          Invoke-WebRequest http://download.osgeo.org/osgeo4w/x86_64/release/geos/geos-3.8.1-1.tar.bz2 -OutFile geos-3.8.1-1.tar.bz2
+      - name: Extract GEOS tar.bz2
+        uses: DuckSoft/extract-7z-action@v1.0
+        with:
+          pathSource: geos-3.8.1-1.tar.bz2
+          pathTarget: ./
+      - name: Extract GEOS tar
+        uses: DuckSoft/extract-7z-action@v1.0
+        with:
+          pathSource: geos-3.8.1-1.tar
+          pathTarget: C:\Software\GEOS
+      - name: Install CGAL
+        run: |
+          echo $env:VCPKG_INSTALLATION_ROOT
+          $env:VCPKG_DEFAULT_TRIPLET="x64-windows"
+          vcpkg install cgal
+      - name: Install fetch
+        run: |
+          Invoke-WebRequest https://github.com/gruntwork-io/fetch/releases/download/v0.3.7/fetch_windows_amd64.exe -OutFile fetch.exe
+      - name: Install latest Geoflow
+        run: |
+          Invoke-WebRequest https://github.com/gruntwork-io/fetch/releases/download/v0.3.7/fetch_windows_amd64.exe -OutFile fetch.exe
+          .\fetch.exe --repo="https://github.com/geoflow3d/geoflow" --tag=">=0.1.4" --release-asset="Geoflow-win64.exe" .\
+          .\Geoflow-win64.exe /S
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_INSTALL_PREFIX=C:\Software -DGEOS_INCLUDE_DIR=C:\Software\GEOS\include -DGEOS_LIBRARY=C:\Software\GEOS\lib\geos_c.lib
+          cmake --build . --target gfp_val3dity --parallel 4 --config Release
+      - name: Collect dll's
+        run: |
+          mkdir gfp-val3dity
+          mkdir gfp-val3dity\deps
+          cp build\Release\gfp_val3dity.dll gfp-val3dity\
+          cp C:\Software\GEOS\bin\geos_c.dll gfp-gdal\deps\
+          cp C:\Software\GEOS\bin\geos.dll gfp-gdal\deps\
+      - name: Create artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: gfp-val3dity-win64
+          path: gfp-val3dity
+
+  Release:
+    name: Upload Release Asset
+    runs-on: ubuntu-latest
+    needs: Windows-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      # - name: Build
+      #   uses: ././github/actions/Build
+      - name: Build project # This would actually build your project, using zip for an example artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: gfp-val3dity-win64
+          path: gfp-val3dity-win64/
+      - name: Repackage
+        run: |
+          zip -r gfp-val3dity-win64.zip ./gfp-val3dity-win64
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: true
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./gfp-val3dity-win64.zip
+          asset_name: gfp-val3dity-win64.zip
+          asset_content_type: application/zip

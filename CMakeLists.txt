@@ -12,6 +12,9 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/.gitmodules")
     )
 endif()
 
+if (WIN32)
+  include_directories(${geoflow_INCLUDE_DIRS})
+endif()
 add_subdirectory(thirdparty/val3dity)
 
 set(GF_PLUGIN_NAME ${PROJECT_NAME})

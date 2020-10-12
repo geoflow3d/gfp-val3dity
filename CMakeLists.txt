@@ -28,4 +28,6 @@ geoflow_create_plugin(
 #   thirdparty/val3dity/src
 #   thirdparty/val3dity/thirdparty
 #   )
+set_property(TARGET gfp_val3dity PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_link_libraries(gfp_val3dity PRIVATE geoflow-core val3dity)

@@ -21,32 +21,21 @@ void ValidatorNode::process()
   std::vector<std::unique_ptr<val3dity::Surface>> surfaces;
 
   
-  if(input_geom.is_connected_type(typeid(Mesh))) {
-    for(size_t i=0; i<input_geom.size(); ++i) {    
-      auto& mesh = input_geom.get<Mesh&>(i);
+  if(input_geom.is_connected_type(typeid(std::unordered_map<int, Mesh>))) {
+    for(size_t i=0; i<input_geom.size(); ++i) {
+      auto& meshmap = input_geom.get<std::unordered_map<int, Mesh>&>(i);
+      for(auto& [sid, mesh] : meshmap) {
+        // create a vertex list and vertex IDs, taking care of duplicates
+        std::map<arr3f, size_t> vertex_map;
+        std::vector<arr3f> vertex_vec;
 
-      // create a vertex list and vertex IDs, taking care of duplicates
-      std::map<arr3f, size_t> vertex_map;
-      std::vector<arr3f> vertex_vec;
-
-      size_t v_cntr = 0;
-      std::set<arr3f> vertex_set;
-      
-      auto& faces = mesh.get_polygons();
-      for (auto& face : faces)
-      {
-        for (auto &vertex : face)
+        size_t v_cntr = 0;
+        std::set<arr3f> vertex_set;
+        
+        auto& faces = mesh.get_polygons();
+        for (auto& face : faces)
         {
-          auto [it, did_insert] = vertex_set.insert(vertex);
-          if (did_insert)
-          {
-            vertex_map[vertex] = v_cntr++;
-            vertex_vec.push_back(vertex);
-          }
-        }
-        for (auto& iring : face.interior_rings()) 
-        {
-          for (auto &vertex : iring)
+          for (auto &vertex : face)
           {
             auto [it, did_insert] = vertex_set.insert(vertex);
             if (did_insert)
@@ -55,40 +44,52 @@ void ValidatorNode::process()
               vertex_vec.push_back(vertex);
             }
           }
+          for (auto& iring : face.interior_rings()) 
+          {
+            for (auto &vertex : iring)
+            {
+              auto [it, did_insert] = vertex_set.insert(vertex);
+              if (did_insert)
+              {
+                vertex_map[vertex] = v_cntr++;
+                vertex_vec.push_back(vertex);
+              }
+            }
+          }
         }
-      }
 
-      auto sh = std::make_unique<val3dity::Surface>(i);
-      for (auto &v : vertex_vec)
-      {
-        val3dity::Point3 p(v[0], v[1], v[2]);
-        sh->add_point(p);
-      }
-      //-- add the facets
-      for (auto& face : faces)
-      {
-        std::vector< std::vector<int> > pgnids;
-        std::vector<int> ids;
-        // ofs << "f";
-        for (auto &vertex : face)
+        auto sh = std::make_unique<val3dity::Surface>(i);
+        for (auto &v : vertex_vec)
         {
-          ids.push_back(vertex_map[vertex]);
-          // ofs << " " << vertex_map[vertex];
+          val3dity::Point3 p(v[0], v[1], v[2]);
+          sh->add_point(p);
         }
-        // ofs << std::endl;
-        pgnids.push_back(ids);
-        for (auto& iring : face.interior_rings())
+        //-- add the facets
+        for (auto& face : faces)
         {
+          std::vector< std::vector<int> > pgnids;
           std::vector<int> ids;
-          for (auto &vertex : iring)
+          // ofs << "f";
+          for (auto &vertex : face)
           {
             ids.push_back(vertex_map[vertex]);
+            // ofs << " " << vertex_map[vertex];
           }
+          // ofs << std::endl;
           pgnids.push_back(ids);
+          for (auto& iring : face.interior_rings())
+          {
+            std::vector<int> ids;
+            for (auto &vertex : iring)
+            {
+              ids.push_back(vertex_map[vertex]);
+            }
+            pgnids.push_back(ids);
+          }
+          sh->add_face(pgnids);
         }
-        sh->add_face(pgnids);
+        surfaces.push_back(std::move(sh));
       }
-      surfaces.push_back(std::move(sh));
     }
 
   } else if(input_geom.is_connected_type(typeid(TriangleCollection))) {

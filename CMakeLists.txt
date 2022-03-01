@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.14)
 project (Val3dity VERSION 0.0.1)
 
-find_package(geoflow REQUIRED)
+if(PROJECT_IS_TOP_LEVEL)
+  find_package(geoflow REQUIRED)
+  include_directories(${geoflow_INCLUDE_DIRS})
+endif()
 
 # get val3dity
 set(GF_GIT_SUBMODULES val3dity)
@@ -12,7 +15,6 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/.gitmodules")
     )
 endif()
 
-include_directories(${geoflow_INCLUDE_DIRS})
 add_subdirectory(thirdparty/val3dity)
 
 set(GF_PLUGIN_NAME ${PROJECT_NAME})

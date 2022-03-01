@@ -31,3 +31,11 @@ geoflow_create_plugin(
 set_property(TARGET gfp_val3dity PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_link_libraries(gfp_val3dity PRIVATE geoflow-core val3dity)
+
+if (MSVC)
+  # collect dll's required for runtime
+  INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Release/ DESTINATION bin
+    FILES_MATCHING 
+    PATTERN "*.dll"
+    PATTERN "gfp*" EXCLUDE)
+endif()

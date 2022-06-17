@@ -1,5 +1,5 @@
-// This file is part of Geoflow
-// Copyright (C) 2018-2019  Ravi Peters, 3D geoinformation TU Delft
+// This file is part of gfp-val3dity
+// Copyright (C) 2018-2022 Ravi Peters
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,7 +13,6 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 #include <geoflow/geoflow.hpp>
 
 using namespace geoflow;

@@ -30,8 +30,8 @@ void ValidatorNode::process()
   auto& input_geom = vector_input("input_geom");
 
   // init val3dity
-  val3dity::Primitive::set_translation_min_values((*manager.data_offset)[0], (*manager.data_offset)[1]);
-  val3dity::Surface::set_translation_min_values((*manager.data_offset)[0], (*manager.data_offset)[1]);
+  val3dity::Primitive::set_translation_min_values((*manager.data_offset())[0], (*manager.data_offset())[1]);
+  val3dity::Surface::set_translation_min_values((*manager.data_offset())[0], (*manager.data_offset())[1]);
 
   std::vector<std::unique_ptr<val3dity::Surface>> surfaces;
 
@@ -180,7 +180,7 @@ void ValidatorNode::process()
   PointCollection pc;
   auto& error_faces = vector_output("error_faces");
 
-  auto& offset = *manager.data_offset;
+  auto& offset = *manager.data_offset();
   
   for (auto& sh : surfaces) {
     auto errorpts = sh->get_error_points();

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project (Val3dity VERSION 0.2.0)
+project (Val3dity VERSION 0.3.0)
 
 if(PROJECT_IS_TOP_LEVEL)
   find_package(geoflow REQUIRED)
